@@ -44,5 +44,6 @@ dist/
 *.log
 .idea/
 .vscode/
+**/.kilo/
 .DS_Store
 Thumbs.db

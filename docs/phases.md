@@ -66,6 +66,16 @@ El usuario informó que ya entrenó un primer modelo con Teachable Machine. Este
 
 Guía de ejecución: `docs/backend.md`. El modelo y las fotos están excluidos de Git. La clasificación técnica funciona, pero la confianza alta observada en fotos existentes no valida la precisión: una de las fotos de `carro` sin carro visible recibió `car` con 0.9999. No usar este modelo para modificar cupos hasta corregir etiquetas y evaluarlo con fotos nuevas.
 
+## Fase 5 — Envío automático de la ESP32-CAM
+
+- [x] Preparar `firmware/entrada/parking_entrada.ino` para capturar y enviar JPEG cada 2 segundos al backend.
+- [x] Configurar el servidor para escuchar en la red de la cámara cuando `PARKING_HOST=0.0.0.0`.
+- [x] Conservar `/capture` y registrar la clasificación en la terminal del servidor.
+- [ ] Compilar y cargar el sketch desde Arduino Cloud; probar flujo real cámara → servidor.
+- [ ] Resolver arranque de la cámara sin RST manual.
+
+Guía: `docs/esp32-every-2-seconds.md`. El firmware todavía no se ha compilado ni probado en la placa desde este repositorio.
+
 ## Fases posteriores
 
 2B: herramienta de captura; 2C: dataset de ambas cámaras; 3: entrenamiento y evaluación; 4: backend de inferencia; 5: envío ESP32 → backend; 6: Firebase y conteo; 7: cámara de salida; 8: adaptar Flutter; 9: pruebas integrales.

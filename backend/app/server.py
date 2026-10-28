@@ -41,6 +41,8 @@ def create_app(classifier=None):
             return jsonify(error=str(exc)), 400
         if camera is not None:
             result["camera"] = camera
+        app.logger.info("Predicción %s: %s (%.4f)", camera or "sin cámara",
+                        result["prediction"], result["confidence"])
         return jsonify(result)
 
     @app.errorhandler(RequestEntityTooLarge)
@@ -56,8 +58,10 @@ def main():
     except (FileNotFoundError, ValueError, OSError) as exc:
         raise SystemExit(f"No se pudo iniciar el modelo: {exc}") from exc
     port = int(os.environ.get("PARKING_PORT", "5000"))
-    print(f"Servidor listo en http://127.0.0.1:{port}", flush=True)
-    app.run(host="127.0.0.1", port=port, debug=False, use_reloader=False)
+    host = os.environ.get("PARKING_HOST", "127.0.0.1")
+    app.logger.setLevel("INFO")
+    print(f"Servidor listo en {host}:{port}", flush=True)
+    app.run(host=host, port=port, debug=False, use_reloader=False)
 
 
 if __name__ == "__main__":

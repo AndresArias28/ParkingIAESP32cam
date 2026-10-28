@@ -41,6 +41,8 @@ Son valores iniciales tomados del plan; deberán ajustarse a la maqueta y valida
 
 La cámara de entrada ya captura desde `/capture` según pruebas del usuario, con RST manual tras conectar USB. La herramienta de fase 2B guardó 76 fotos comprobadas como JPEG de 640×480. El primer modelo de Teachable Machine está en `ml/model/`; el backend de inferencia carga el modelo y responde a pruebas HTTP. Sigue `docs/backend.md` para ejecutarlo. Quedan pendientes la evaluación con fotos nuevas y la corrección de etiquetas y variedad del dataset antes de conectar el conteo.
 
+El firmware de entrada para enviar fotografías cada 2 segundos está preparado en `firmware/entrada/parking_entrada.ino`. Sigue `docs/esp32-every-2-seconds.md` para cargarlo desde Arduino Cloud y conectarlo al backend. El conteo y Flutter aún no reciben estas predicciones.
+
 ## Configuración y seguridad
 
 No guardar contraseñas Wi-Fi, cuentas de servicio, claves privadas ni tokens en Git. Usar variables de entorno o archivos locales excluidos. Los datasets y modelos también se excluyen por tamaño y posible contenido sensible. No se han publicado cambios ni desplegado servicios.

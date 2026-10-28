@@ -2,8 +2,8 @@
 #include <WebServer.h>
 #include "esp_camera.h"
 
-const char* ssid = "SOFIA";
-const char* password = "013salsa";
+const char* ssid = "";
+const char* password = "";
 
 WebServer server(80);
 bool cameraReady = false;
@@ -110,7 +110,7 @@ void setup() {
 
   WiFi.mode(WIFI_AP_STA);
 
-  WiFi.softAP("ParkingIA-Entrada", "ParkingIA2026");
+  WiFi.softAP("ParkingIA-Entrada", "CAMBIAR_CLAVE_LOCAL");
 
   Serial.print("IP de acceso directo: ");
   Serial.println(WiFi.softAPIP());
