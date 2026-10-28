@@ -1,0 +1,48 @@
+# Credenciales y configuración local
+.env
+.env.*
+!.env.example
+**/serviceAccount*.json
+**/*service-account*.json
+**/*credentials*.json
+*.pem
+*.key
+**/secrets.h
+**/secrets.local.h
+config/*.local.json
+# Configuración Firebase recuperada: mantener local
+movil_app/lib/firebase_options.dart
+movil_app/android/app/google-services.json
+**/GoogleService-Info.plist
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Capturas y modelos
+ml/dataset/**
+!ml/dataset/**/
+!ml/dataset/**/.gitkeep
+ml/model/**
+!ml/model/.gitkeep
+backend/models/**
+!backend/models/.gitkeep
+*.h5
+*.keras
+*.tflite
+
+# Herramientas y archivos generados
+node_modules/
+.dart_tool/
+build/
+dist/
+*.log
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
