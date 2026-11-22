@@ -1,4 +1,6 @@
-// Crear una copia local llamada secrets.h. No subirla al repositorio.
-const char *AP_SSID = "ParkingIA-Entrada";
-const char *AP_PASSWORD = "ParkingIA2026";
-const char *BACKEND_IP = "192.168.4.2";
+// Copiar como secrets.h y completar solo en el entorno local. No versionar secretos.
+const char *ROUTER_SSID = "";
+const char *ROUTER_PASSWORD = "";
+const char *BACKEND_IP = "";
+const uint16_t BACKEND_PORT = 5000;
+const char *CAMERA_TOKEN = "";

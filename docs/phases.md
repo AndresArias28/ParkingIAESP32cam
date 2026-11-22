@@ -69,12 +69,38 @@ Guía de ejecución: `docs/backend.md`. El modelo y las fotos están excluidos d
 ## Fase 5 — Envío automático de la ESP32-CAM
 
 - [x] Preparar `firmware/entrada/parking_entrada.ino` para capturar y enviar JPEG cada 2 segundos al backend.
-- [x] Configurar el servidor para escuchar en la red de la cámara cuando `PARKING_HOST=0.0.0.0`.
+- [x] Configurar el servidor para escuchar en la red local cuando `PARKING_HOST=0.0.0.0`.
 - [x] Conservar `/capture` y registrar la clasificación en la terminal del servidor.
-- [ ] Compilar y cargar el sketch desde Arduino Cloud; probar flujo real cámara → servidor.
+- [x] Preparar el firmware de entrada en `WIFI_STA` para compartir el router con el computador; omitir envíos sin conexión y reintentarla. Actualizar las guías de red y retirar los valores privados del archivo de ejemplo.
+- [x] Compilar y cargar el sketch desde Arduino Cloud; el usuario confirmó flujo real cámara → servidor el 30 de octubre de 2026.
+- [x] Confirmar con la placa predicciones y actualización de Firebase usando Wi-Fi de casa y después el punto de acceso del celular, según pruebas comunicadas por el usuario.
+- [ ] Verificar la lectura actualizada en Flutter con el dispositivo y documentar el resultado.
 - [ ] Resolver arranque de la cámara sin RST manual.
 
-Guía: `docs/esp32-every-2-seconds.md`. El firmware todavía no se ha compilado ni probado en la placa desde este repositorio.
+Guía: `docs/esp32-every-2-seconds.md`. El firmware anterior para el dataset conserva su red directa. El usuario confirmó la prueba de predicciones con la placa; aún falta verificar Flutter y resolver el arranque sin RST manual.
+
+## Fase 6 — Conteo y Firebase
+
+- [x] Implementar transición Vacío → Vehículo por cámara, dos Vacíos para rearmar, umbral, cooldown y límites.
+- [x] Guardar estado del detector, ocupación y evento junto al nodo existente `estado` en una transacción de la raíz.
+- [x] Preparar Firebase Admin con credencial local y activación mediante `PARKING_FIREBASE_ENABLED=1`.
+- [x] Añadir pruebas de entradas, salidas, duplicados, confianza, cooldown, capacidad y reinicio.
+- [x] Probar escritura en el proyecto Firebase real con una cuenta de servicio local; el usuario confirmó cambios de conteo el 30 de octubre de 2026.
+- [ ] Verificar reglas de lectura y actualización en Flutter durante la prueba integral.
+- [x] Añadir una comprobación de lectura de `parking/state` para validar credencial, URL y acceso sin escribir datos.
+- [x] Aclarar que las variables de Firebase deben definirse en la misma sesión de PowerShell y corregir el mensaje de error de arranque del servidor.
+- [x] Comprobar lectura real desde Python con Firebase Admin el 29 de octubre de 2026; `parking/state` aún no existe y no se escribió en la base.
+- [x] Mostrar en la terminal si el conteo Firebase está activado y el resultado de cada observación para diagnosticar peticiones que solo clasifican.
+- [x] Adaptar el repositorio al esquema real `config`/`estado` y sincronizarlo con `parking` en una transacción, conservando los demás datos; comprobar en memoria capacidad 100/200, ocupación 10/0, duplicados y cambios externos.
+- [x] Preparar carga automática de variables desde `.env` local excluido de Git para iniciar el servidor sin reescribirlas en cada terminal. El token compartido en el chat debe rotarse en la cámara y en la configuración local.
+
+## Fase 8 — Visualización Flutter
+
+- [x] Adaptar la app para escuchar `parking` y mostrar ocupados, disponibles y eventos recientes.
+- [x] Ejecutar `flutter analyze` sin errores.
+- [ ] Ejecutar la app conectada a Firebase y verificar cambios reales de la maqueta.
+
+Guía: `docs/firebase-and-flutter.md`. La lectura desde Python y la escritura con cámara fueron confirmadas; la visualización con Flutter sigue pendiente de prueba real.
 
 ## Fases posteriores
 

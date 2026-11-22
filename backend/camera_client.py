@@ -2,11 +2,15 @@
 
 import argparse
 import json
+import os
 from urllib.error import HTTPError, URLError
 from urllib.request import ProxyHandler, Request, build_opener
 
+from .app.local_config import load_local_env
+
 
 def main():
+    load_local_env()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--camera-url", default="http://192.168.4.1/capture")
     parser.add_argument("--server-url", default="http://127.0.0.1:5000/api/v1/predict")
@@ -22,7 +26,11 @@ def main():
             raise ValueError("La foto está vacía o supera 5 MB")
         separator = "&" if "?" in args.server_url else "?"
         url = f"{args.server_url}{separator}camera={args.camera}"
-        request = Request(url, data=image, headers={"Content-Type": "image/jpeg"}, method="POST")
+        headers = {"Content-Type": "image/jpeg"}
+        camera_token = os.environ.get("PARKING_CAMERA_TOKEN")
+        if camera_token:
+            headers["X-Camera-Token"] = camera_token
+        request = Request(url, data=image, headers=headers, method="POST")
         with opener.open(request, timeout=30) as response:
             print(json.dumps(json.load(response), ensure_ascii=False, indent=2))
     except (HTTPError, URLError, OSError, ValueError) as exc:

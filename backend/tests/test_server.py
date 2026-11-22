@@ -5,6 +5,7 @@ import unittest
 
 from backend.app.classifier import InvalidImage, normalize_label
 from backend.app.server import create_app
+from backend.app.parking_service import ParkingService
 
 
 class FakeClassifier:
@@ -12,6 +13,15 @@ class FakeClassifier:
         if image_bytes == b"bad":
             raise InvalidImage("Imagen inválida")
         return {"prediction": "car", "confidence": 0.9}
+
+
+class MemoryRepository:
+    def __init__(self):
+        self.value = None
+
+    def transaction(self, update):
+        self.value = update(self.value)
+        return self.value
 
 
 class ServerTest(unittest.TestCase):
@@ -51,6 +61,24 @@ class ServerTest(unittest.TestCase):
         response = self.client.post("/api/v1/predict", data=b"x" * (5 * 1024 * 1024 + 1),
                                     content_type="image/jpeg")
         self.assertEqual(response.status_code, 413)
+
+    def test_http_observation_counts_once(self):
+        repo = MemoryRepository()
+        client = create_app(FakeClassifier(), ParkingService(repo),
+                            camera_token="test-token").test_client()
+        unauthorized = client.post("/api/v1/predict?camera=entrance-01",
+                                   data=b"jpeg", content_type="image/jpeg")
+        self.assertEqual(unauthorized.status_code, 401)
+        first = client.post("/api/v1/predict?camera=entrance-01",
+                            data=b"jpeg", content_type="image/jpeg",
+                            headers={"X-Camera-Token": "test-token"})
+        second = client.post("/api/v1/predict?camera=entrance-01",
+                             data=b"jpeg", content_type="image/jpeg",
+                             headers={"X-Camera-Token": "test-token"})
+        self.assertTrue(first.json["counted"])
+        self.assertFalse(second.json["counted"])
+        self.assertEqual(second.json["occupied"]["car"], 1)
+        self.assertEqual(len(repo.value["events"]), 1)
 
 
 if __name__ == "__main__":

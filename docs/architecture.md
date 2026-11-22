@@ -23,7 +23,7 @@ En fase 4, `POST /api/v1/predict` clasificará una imagen local y devolverá, po
 {"prediction": "car", "confidence": 0.9432}
 ```
 
-En fase 5 se añadirá el identificador de cámara: `?camera=entrance-01` o `?camera=exit-01`. El formato de carga y los errores se concretarán al implementar el endpoint. Ninguno de estos endpoints está implementado todavía.
+El endpoint acepta JPEG directo o archivo multipart `image`, y el identificador `?camera=entrance-01` o `?camera=exit-01`. Con `PARKING_FIREBASE_ENABLED=1`, credenciales de servidor y `PARKING_CAMERA_TOKEN` configurados, exige el encabezado `X-Camera-Token`, procesa el conteo y devuelve `counted`, `reason`, `occupied` y `available`.
 
 ## Identificadores y reglas
 
@@ -37,11 +37,11 @@ En fase 5 se añadirá el identificador de cámara: `?camera=entrance-01` o `?ca
 
 Entrada aceptada suma uno; salida aceptada resta uno, por tipo. Vacío y confianza inferior a 0.85 no modifican ocupación. Debe cumplirse siempre `0 <= occupied <= capacity` y `available = capacity - occupied`.
 
-El cooldown inicial será de 2500 ms por cámara, medido entre eventos aceptados. Las decisiones rechazadas no deben reiniciarlo. El conteo concurrente de ambas cámaras requerirá una transacción o mecanismo equivalente para evitar actualizaciones perdidas. Estado y evento aceptado deben conservar coherencia ante reintentos; la estrategia de idempotencia se definirá en la integración.
+El cooldown inicial es de 2500 ms por cámara, medido entre eventos aceptados. El detector se desarma tras detectar un vehículo y exige dos predicciones `empty` consecutivas, con confianza suficiente, antes de volver a contar. Un vehículo rechazado por cooldown o capacidad también desarma el detector hasta que la escena se vacíe. Las decisiones rechazadas no reinician el cooldown. La transacción de Firebase abarca la raíz para actualizar juntos `estado` y `parking` sin que dos cámaras pisen el contador de la otra. El estado del detector queda en `parking/cameras` para resistir reinicios del proceso Python. Una clasificación errónea de Vacío dos veces puede rearmarlo; se debe validar en la maqueta.
 
 ## Datos previstos en Firebase
 
-`config/parking.example.json` contiene el esquema inicial: config, state, cameras y events. Las cámaras comienzan con online=false: el ejemplo no implica conexión real. La detección de conexión requerirá un mecanismo de último contacto y caducidad que se definirá en la integración.
+`config/parking.example.json` contiene el esquema inicial bajo el nodo `parking`: config, state, cameras y events. La base existente usa además `config` y `estado` en la raíz. `FirebaseRepository` toma de allí capacidad, umbral, cooldown y ocupación; tras cada observación sincroniza `estado` y `parking` en una sola transacción. Conserva los demás nodos y campos. Las cámaras comienzan con online=false: el ejemplo no implica conexión real. Cada observación actualiza `lastSeenMs`; el cálculo de desconexión por caducidad queda pendiente.
 
 Ejemplo de evento aceptado:
 
@@ -53,4 +53,4 @@ El timestamp 0 es ilustrativo; en producción representará tiempo del servidor 
 
 ## Aplicación recuperada
 
-Actualmente movil_app/lib/parking_station.dart consulta `estado` con campos dispCarro, dispMoto, ocupadosCarro y ocupadosMoto. El esquema nuevo usa state/occupied y state/available. Esta diferencia se resolverá en fase 8; la app actual no es todavía compatible con el contrato propuesto. No se modifica la base Firebase existente durante la fase 1.
+El código Flutter actual escucha `parking` y muestra `state/occupied`, `state/available` y los últimos eventos. La versión anterior escucha `estado`; ambos nodos se mantienen sincronizados para que las dos versiones reciban cambios. La prueba de escritura con Firebase real requiere cámara, credenciales de servidor y conexión a Internet.

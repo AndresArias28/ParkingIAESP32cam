@@ -10,7 +10,7 @@ La inferencia se ejecutará en el backend. La app consultará Firebase mediante 
 
 ## Estado actual
 
-Fase 1 completada: estructura, documentación, parámetros iniciales y control de versiones local. Backend, firmware y entrenamiento están pendientes; las carpetas reservadas no contienen todavía implementaciones ejecutables. La app recuperada está en `movil_app/` y conserva su integración anterior con Firebase.
+El backend de inferencia y conteo está implementado. El usuario confirmó predicciones de la cámara y actualizaciones del conteo en Firebase; la visualización real en Flutter sigue pendiente de comprobar. El repositorio sincroniza el esquema existente `config`/`estado` con el nuevo nodo `parking`. La app recuperada está en `movil_app/` y el código actual escucha `parking`. El modelo inicial requiere evaluación con fotos nuevas antes de confiar en sus conteos.
 
 ## Organización
 
@@ -30,7 +30,7 @@ Se conserva `movil_app/` en vez de trasladarla a `mobile/parking_app/` para pres
 
 ## Parámetros iniciales de la maqueta
 
-- Capacidad: 5 carros y 5 motos; ocupación inicial: 0 para ambos.
+- Capacidad del ejemplo local: 5 carros y 5 motos; ocupación inicial: 0 para ambos. La base existente conserva sus propios valores de `config` y `estado`.
 - Entrada: `entrance-01`; salida: `exit-01`.
 - Confianza mínima: 0.85; cooldown: 2500 ms por cámara.
 - Captura a evaluar en fase 2A: JPEG, VGA 640×480, calidad 12 y un framebuffer.
@@ -41,7 +41,7 @@ Son valores iniciales tomados del plan; deberán ajustarse a la maqueta y valida
 
 La cámara de entrada ya captura desde `/capture` según pruebas del usuario, con RST manual tras conectar USB. La herramienta de fase 2B guardó 76 fotos comprobadas como JPEG de 640×480. El primer modelo de Teachable Machine está en `ml/model/`; el backend de inferencia carga el modelo y responde a pruebas HTTP. Sigue `docs/backend.md` para ejecutarlo. Quedan pendientes la evaluación con fotos nuevas y la corrección de etiquetas y variedad del dataset antes de conectar el conteo.
 
-El firmware de entrada para enviar fotografías cada 2 segundos está preparado en `firmware/entrada/parking_entrada.ino`. Sigue `docs/esp32-every-2-seconds.md` para cargarlo desde Arduino Cloud y conectarlo al backend. El conteo y Flutter aún no reciben estas predicciones.
+El firmware de entrada para enviar fotografías cada 2 segundos está en `firmware/entrada/parking_entrada.ino` y ya se probó con la cámara. Sigue `docs/esp32-every-2-seconds.md` para la conexión y `docs/firebase-and-flutter.md` para iniciar el backend con `.env` local. Falta verificar la lectura en Flutter y evaluar el modelo con imágenes nuevas.
 
 ## Configuración y seguridad
 

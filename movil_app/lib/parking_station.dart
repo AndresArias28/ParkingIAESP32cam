@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/material.dart';
 
 class ParkingStation extends StatefulWidget {
   const ParkingStation({super.key});
@@ -10,107 +10,89 @@ class ParkingStation extends StatefulWidget {
 }
 
 class _ParkingStationState extends State<ParkingStation> {
-  late final FirebaseDatabase database;
-  late final DatabaseReference databaseRef;
-  late final DatabaseReference estadoRef;
-  int? carrosDisponibles;
+  late final DatabaseReference parkingRef;
 
   @override
   void initState() {
     super.initState();
-
-    database = FirebaseDatabase.instanceFor(
+    final database = FirebaseDatabase.instanceFor(
       app: Firebase.app(),
       databaseURL: 'https://parkingia-default-rtdb.firebaseio.com',
     );
-
-    //databaseRef = database.ref();
-    estadoRef = database.ref('estado');
-    //obtenerDatos();
+    parkingRef = database.ref('parking');
   }
 
-  // Future<void> obtenerDatos() async {
-  //   final snapshot = await databaseRef.child('estado/dispCarro').get();
-  //   if (snapshot.exists) {
-  //     final valor = snapshot.value;
+  Map<String, dynamic> asMap(Object? value) =>
+      value is Map ? Map<String, dynamic>.from(value) : {};
 
-  //     print('Valor recibido desde Firebase: $valor');
-  //     setState(() {
-  //       carrosDisponibles = snapshot.value as int?;
-  //     });
-  //     print(snapshot.value);
-  //   } else {
-  //     print('No se encontraron datos.');
-  //   }
-  // }
+  int asInt(Object? value) => value is num ? value.toInt() : 0;
 
   @override
   Widget build(BuildContext context) {
-    // final DatabaseReference estadoRef = FirebaseDatabase.instance.ref(
-    //   'estado/dispCarro',
-    // );
-
     return Scaffold(
-      appBar: AppBar(title: const Text('Parking Station')),
-
+      appBar: AppBar(title: const Text('Parking IA')),
       body: StreamBuilder<DatabaseEvent>(
-        stream: estadoRef.onValue,
-
+        stream: parkingRef.onValue,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return const Center(child: Text('Error cargando información'));
+            return const Center(child: Text('No se pudo leer Firebase'));
           }
-
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
-
           final value = snapshot.data!.snapshot.value;
-
           if (value == null) {
-            return const Center(child: Text('No hay información'));
+            return const Center(child: Text('Esperando el primer evento del parqueadero'));
           }
+          final parking = asMap(value);
+          final state = asMap(parking['state']);
+          final occupied = asMap(state['occupied']);
+          final available = asMap(state['available']);
+          final config = asMap(parking['config']);
+          final capacity = asMap(config['capacity']);
+          final events = asMap(parking['events']).entries.toList()
+            ..sort((a, b) => asInt(asMap(b.value)['timestamp'])
+                .compareTo(asInt(asMap(a.value)['timestamp'])));
 
-          final data = Map<String, dynamic>.from(value as Map);
-
-          final int dispCarro = data['dispCarro'] ?? 0;
-
-          final int dispMoto = data['dispMoto'] ?? 0;
-
-          final int ocupadosCarro = data['ocupadosCarro'] ?? 0;
-
-          final int ocupadosMoto = data['ocupadosMoto'] ?? 0;
-
-          return Padding(
+          return ListView(
             padding: const EdgeInsets.all(20),
-
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-
-              children: [
-                Text(
-                  'Carros disponibles: $dispCarro',
-                  style: const TextStyle(fontSize: 24),
-                ),
-
-                Text(
-                  'Carros ocupados: $ocupadosCarro',
-                  style: const TextStyle(fontSize: 20),
-                ),
-
-                const SizedBox(height: 30),
-
-                Text(
-                  'Motos disponibles: $dispMoto',
-                  style: const TextStyle(fontSize: 24),
-                ),
-
-                Text(
-                  'Motos ocupadas: $ocupadosMoto',
-                  style: const TextStyle(fontSize: 20),
-                ),
-              ],
-            ),
+            children: [
+              const Text('Cupos en tiempo real',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              Card(child: ListTile(
+                title: const Text('Carros'),
+                subtitle: Text('Ocupados: ${asInt(occupied['car'])} de ${asInt(capacity['car'])}'),
+                trailing: Text('${asInt(available['car'])} libres',
+                    style: const TextStyle(fontSize: 18)),
+              )),
+              Card(child: ListTile(
+                title: const Text('Motos'),
+                subtitle: Text('Ocupadas: ${asInt(occupied['motorcycle'])} de ${asInt(capacity['motorcycle'])}'),
+                trailing: Text('${asInt(available['motorcycle'])} libres',
+                    style: const TextStyle(fontSize: 18)),
+              )),
+              const SizedBox(height: 24),
+              const Text('Eventos recientes',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              if (events.isEmpty) const ListTile(title: Text('Aún no hay movimientos')),
+              for (final entry in events.take(5))
+                Builder(builder: (context) {
+                  final event = asMap(entry.value);
+                  final vehicle = event['type'] == 'car' ? 'Carro' : 'Moto';
+                  final action = event['action'] == 'in' ? 'entró' : 'salió';
+                  final timestamp = asInt(event['timestamp']);
+                  final when = timestamp > 0
+                      ? DateTime.fromMillisecondsSinceEpoch(timestamp).toLocal()
+                      : null;
+                  return ListTile(
+                    leading: Icon(event['action'] == 'in'
+                        ? Icons.login : Icons.logout),
+                    title: Text('$vehicle $action'),
+                    subtitle: Text('${event['camera'] ?? ''}${when == null ? '' : ' · $when'}'),
+                  );
+                }),
+            ],
           );
         },
       ),

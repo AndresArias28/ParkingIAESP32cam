@@ -1,4 +1,5 @@
 {
+  "parking": {
   "config": {
     "capacity": { "car": 5, "motorcycle": 5 },
     "confidenceThreshold": 0.85,
@@ -13,4 +14,5 @@
     "exit-01": { "type": "exit", "online": false }
   },
   "events": {}
+  }
 }
